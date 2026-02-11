@@ -39,39 +39,6 @@ button {
   color: var(--color-link-hover);
 }
 
-.filter_tags {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.filter-btn {
-  font-size: inherit;
-  color: var(--color-text);
-  padding: 0.5rem 1rem;
-  border: 1px solid #4c4c4c;
-  border-radius: 2em;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-}
-
-.filter-btn:hover {
-  border-color: #5c5c5c;
-  color: #fff;
-}
-
-.filter-btn.active {
-  background-color: #fff;
-  color: #0e0e0e;
-  border-color: #fff;
-}
-
-.grid_gallery_item.hidden {
-  display: none;
-}
-
 .grid_gallery_container {
   position: relative;
   display: grid;
