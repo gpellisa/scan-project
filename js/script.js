@@ -83,6 +83,66 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
   });
 
+  // ===== FILTER FUNCTIONALITY =====
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  let currentFilter = 'all';
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      // Prevent interaction if an animation is already running
+      if (animated) return;
+
+      const targetFilter = btn.dataset.filter;
+
+      // If the clicked filter is already active, do nothing
+      if (targetFilter === currentFilter) return;
+
+      // Lock animation state
+      animated = true;
+
+      // Capture the current state of all grid items
+      const state = Flip.getState(allGridItem);
+
+      // Update current filter
+      currentFilter = targetFilter;
+
+      // Remove "active" class from all filter buttons
+      filterButtons.forEach((filterBtn) => {
+        filterBtn.classList.remove('active');
+      });
+
+      // Add "active" class to the clicked button
+      btn.classList.add('active');
+
+      // Filter items
+      allGridItem.forEach((item) => {
+        const itemTags = item.dataset.tags || '';
+        
+        if (targetFilter === 'all') {
+          item.classList.remove('hidden');
+        } else {
+          if (itemTags.includes(targetFilter)) {
+            item.classList.remove('hidden');
+          } else {
+            item.classList.add('hidden');
+          }
+        }
+      });
+
+      // Animate the layout change
+      Flip.from(state, {
+        duration: 0.6,
+        ease: 'expo.inOut',
+        absolute: true,
+        onComplete: () => {
+          // Update images array after filtering
+          updateImagesArray();
+          animated = false;
+        },
+      });
+    });
+  });
+
   // ===== LIGHTBOX FUNCTIONALITY =====
   const lightbox = document.getElementById('lightbox');
   const lightboxImage = document.getElementById('lightboxImage');
@@ -97,17 +157,21 @@ document.addEventListener('DOMContentLoaded', async function () {
   let images = [];
   let currentIndex = 0;
 
-  // Collect all image URLs from grid items
-  const galleryImages = document.querySelectorAll('.grid_gallery_item .image');
-  galleryImages.forEach((item) => {
-    const bgImage = window
-      .getComputedStyle(item)
-      .backgroundImage.match(/url\(['"]?([^'")\]]+)/)[1];
-    images.push(bgImage);
-  });
+  // Function to update images array based on visible items
+  function updateImagesArray() {
+    images = [];
+    const galleryImages = document.querySelectorAll('.grid_gallery_item:not(.hidden) .image');
+    galleryImages.forEach((item) => {
+      const bgImage = window
+        .getComputedStyle(item)
+        .backgroundImage.match(/url\(['"]?([^'")\]]+)/)[1];
+      images.push(bgImage);
+    });
+    lightboxTotal.textContent = images.length;
+  }
 
-  // Set total count
-  lightboxTotal.textContent = images.length;
+  // Collect all image URLs from grid items initially
+  updateImagesArray();
 
   // Function to open lightbox
   function openLightbox(index) {
@@ -138,12 +202,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     lightboxCurrent.textContent = currentIndex + 1;
   }
 
-  // Add click event to all gallery images
-  galleryImages.forEach((item, index) => {
-    item.style.cursor = 'pointer';
-    item.addEventListener('click', () => {
+  // Add click event to all gallery images using event delegation
+  gridGallery.addEventListener('click', (e) => {
+    const imageElement = e.target.closest('.grid_gallery_item:not(.hidden) .image');
+    if (!imageElement) return;
+
+    // Find the index of the clicked image among visible items
+    const visibleImages = document.querySelectorAll('.grid_gallery_item:not(.hidden) .image');
+    const index = Array.from(visibleImages).indexOf(imageElement);
+    
+    if (index !== -1) {
       openLightbox(index);
-    });
+    }
+  });
+
+  // Set cursor pointer for all images
+  document.querySelectorAll('.grid_gallery_item .image').forEach(item => {
+    item.style.cursor = 'pointer';
   });
 
   // Close lightbox on close button click
